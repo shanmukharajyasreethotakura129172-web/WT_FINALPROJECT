@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fussion Dessert Shop</title>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 0; background: #fce4ec; color: #4a0033;
+  }
+
+  header {
+    background: #9c27b0; padding: 15px; color: white; text-align: center;
+  }
+  header h1 {
+    margin: 0; font-weight: 900; letter-spacing: 5px;
+  }
+
+  nav {
+    background: #7b1fa2; padding: 10px 20px; display: flex; justify-content: flex-end;
+  }
+  nav button {
+    background: #f48fb1; border: none; padding: 8px 15px; color: #4a0033;
+    font-weight: 700; cursor: pointer; border-radius: 8px; margin-left: 10px;
+    transition: background 0.3s ease;
+  }
+  nav button:hover { background: #ce93d8; }
+
+  main {
+    max-width: 940px; margin: 20px auto; background: white; border-radius: 15px;
+    padding: 25px 40px; box-shadow: 0 6px 25px rgba(156, 39, 176, 0.2);
+  }
+
+  .hidden { display: none; }
+
+  form { max-width: 400px; margin: auto; }
+  form input {
+    width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #9c27b0;
+    font-size: 1rem;
+  }
+  form button {
+    background: #9c27b0; border: none; color: white; padding: 12px;
+    font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; margin-top: 15px;
+  }
+  form button:hover { background: #7b1fa2; }
+
+  p.message { color: #7a003b; margin-top: 8px; text-align: center; }
+  a { color: #7a003b; cursor: pointer; }
+
+  .menu-category { margin-bottom: 45px; }
+  .menu-category h2 {
+    font-family: 'Georgia', serif; font-size: 2rem; color: #7a003b;
+    border-bottom: 3px solid #db3a70; padding-bottom: 6px; display: flex;
+    align-items: center; gap: 10px;
+  }
+  .menu-category h2 img { width: 40px; height: 40px; }
+
+  .menu-list {
+    display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+    gap: 25px; margin-top: 15px;
+  }
+
+  .menu-item {
+    background: #f8bbd0; border-radius: 15px; padding: 15px;
+    box-shadow: 0 5px 10px #ce93d8; display: flex;
+    flex-direction: column; align-items: center; transition: transform 0.3s;
+  }
+  .menu-item:hover { transform: scale(1.05); }
+  .menu-item img {
+    max-width: 100%; height: 180px; object-fit: cover;
+    border-radius: 12px; margin-bottom: 15px;
+  }
+
+  .menu-item h3 { margin: 0 0 8px; color: #6a004a; text-align: center; }
+
+  .menu-item button {
+    background: #7b1fa2; border: none; color: white; padding: 8px 20px;
+    font-weight: bold; border-radius: 10px; cursor: pointer;
+  }
+
+  /* CART PANEL */
+  #cart {
+    position: fixed; right: -400px; top: 0; width: 350px; height:100%;
+    background: #fce4ec; box-shadow: -4px 0 10px rgba(156, 39, 176, 0.3);
+    padding: 20px; transition: right 0.4s ease-in-out; overflow-y: auto;
+    display: none; flex-direction: column; z-index: 51000;
+  }
+
+  #cart.show {
+    right: 0;
+  }
+
+  #cart h2 { text-align: center; margin-top: 0; }
+
+  .cart-item {
+    background: white; padding: 10px; border-radius: 10px; margin-bottom: 12px;
+    box-shadow: 0 3px 8px #ce93d8; display: flex; justify-content: space-between;
+  }
+
+  #overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5); display: none; z-index: 900;
+  }
+  #overlay.active { display: block; }
+
+  #viewCartBtn {
+    position: fixed; bottom: 30px; right: 30px;
+    background: #9c27b0; border: none; color: white; padding: 12px 20px;
+    font-weight: bold; font-size: 1rem; border-radius: 30px;
+    cursor: pointer; z-index: 60;
+  }
+</style>
+</head>
+
+<body>
+
+<header><h1>Fussion</h1></header>
+
+<nav>
+  <button id="btnLogin">Login</button>
+  <button id="btnRegister">Register</button>
+  <button id="btnLogout" class="hidden">Logout</button>
+  <button id="btnCart" class="hidden">Cart (0)</button>
+  <button id="viewCartBtn">View Cart (0)</button>
+</nav>
+
+<main>
+
+<!-- LOGIN -->
+<section id="loginSection">
+  <h2 style="text-align:center;">Login</h2>
+  <form id="loginForm">
+    <input type="text" id="loginUsername" placeholder="Username" required />
+    <input type="password" id="loginPassword" placeholder="Password" required />
+    <button type="submit">Login</button>
+    <p class="message">Don't have an account? <a id="goToRegister">Register here</a></p>
+  </form>
+</section>
+
+<!-- REGISTER -->
+<section id="registerSection" class="hidden">
+  <h2 style="text-align:center;">Register</h2>
+  <form id="registerForm">
+    <input type="text" id="registerUsername" placeholder="Choose Username" required/>
+    <input type="password" id="registerPassword" placeholder="Choose Password" required/>
+    <button type="submit">Register</button>
+    <p class="message">Already have an account? <a id="goToLogin">Login here</a></p>
+  </form>
+</section>
+
+<!-- MENU -->
+<section id="menuSection" class="hidden">
+  <h2 style="text-align:center;">Our Delicious Desserts</h2>
+
+  <section class="menu-category">
+    <h2>Authentic Desserts</h2>
+    <div class="menu-list" id="authenticList"></div>
+  </section>
+
+  <section class="menu-category">
+    <h2>Chocolate Loaded</h2>
+    <div class="menu-list" id="chocolateList"></div>
+  </section>
+
+  <section class="menu-category">
+    <h2>Cheese Cakes (Jar)</h2>
+    <div class="menu-list" id="cheeseCakesList"></div>
+  </section>
+
+  <section class="menu-category">
+    <h2>Ice Creams</h2>
+    <div class="menu-list" id="iceCreamList"></div>
+  </section>
+</section>
+
+</main>
+
+<!-- CART -->
+<div id="cart">
+  <h2>Your Cart</h2>
+  <div id="cart-items"><p>Your cart is empty.</p></div>
+  <p id="cart-total"></p>
+  <button id="placeOrderBtn">Place Order</button>
+</div>
+
+<div id="overlay"></div>
+
+<script>
+
+/* ------------ MENU DATA ----------------- */
+let menuData = {
+  authentic: [
+    {name: "Apricot Delight", price: 140, img:"10.jpeg"},
+    {name: "Arabian Velvet Pudding", price:130, img:"11.jpeg"},
+    {name: "Mango Delight", price:140, img:"12.jpeg"},
+    {name: "Kubhani Ka Meetha", price:160, img:"13.jpeg"},
+    {name: "Sitaphal Delight", price:190, img :"14.jpeg"},
+    {name: "Shahtoot Malai", price:200, img:"01.webp"},
+    {name: "Classic Tres Leches", price:250,img:"16.jpeg"},
+    {name: "Rosemilk Tres Leches", price:270,img:"17.jpeg"}
+  ],
+  chocolate: [
+    {name:"Triple Layer Fussion", price:150, img:"18.jpeg"},
+    {name:"Choco Biscoffe Bliss (CBB)", price:190, img:"02.webp"},
+    {name:"Chocolate Mousse Cake (Jar)", price:260, img:"21.jpeg"},
+    {name:"Red Velvet (Jar)", price:260, img:"22.jpeg"},
+    {name:"Strawberry Delight (Seasonal)", price:220, img:"23.jpeg"},
+    {name:"Choco Berry Delight", price:250, img:"24.jpeg"},
+    {name:"Blueberry Dip", price:210, img:"25.jpeg"},
+    {name:"Death By Chocolate (DBC)",price:200, img:"03.webp"}
+  ],
+  cheesecake: [
+    {name:"Biscoff Cheese Cake", price:270, img:"26.jpeg"},
+    {name:"Oreo Cheese Cake", price:270, img:"27.jpeg"},
+    {name:"Blueberry Cheese Cake", price:270, img:"28.jpeg"}
+  ],
+  icecream: [
+    {name:"American Dry Fruit", priceSmall:70, priceLarge:140, img:"29.jpeg"},
+    {name:"Fussion's Special", priceSmall:70, priceLarge:140, img:"30.jpeg"},
+    {name:"Chocolate", priceSmall:60, priceLarge:120, img:"31.jpeg"},
+    {name:"Vanilla", priceSmall:60, priceLarge:120, img:"32.jpeg"},
+    {name:"Ice Cream Tali",priceSmall:25, priceLarge:250, img:"33.jpeg"}
+  ]
+};
+
+/* ------------ STORAGE HELPERS --------------- */
+function saveUsers(users){ localStorage.setItem('fussionUsers', JSON.stringify(users)); }
+function loadUsers(){ return JSON.parse(localStorage.getItem('fussionUsers') || "[]"); }
+
+function saveSession(u){ localStorage.setItem('fussionSession', JSON.stringify(u)); }
+function loadSession(){ return JSON.parse(localStorage.getItem('fussionSession') || "null"); }
+
+function saveCart(c){ localStorage.setItem('fussionCart', JSON.stringify(c)); }
+function loadCart(){ return JSON.parse(localStorage.getItem('fussionCart') || "[]"); }
+
+/* ------------ ELEMENTS --------------- */
+const btnLogin = document.getElementById('btnLogin');
+const btnRegister = document.getElementById('btnRegister');
+const btnLogout = document.getElementById('btnLogout');
+const btnCart = document.getElementById('btnCart');
+const viewCartBtn = document.getElementById('viewCartBtn');
+
+const loginSection = document.getElementById('loginSection');
+const registerSection = document.getElementById('registerSection');
+const menuSection = document.getElementById('menuSection');
+
+const loginForm = document.getElementById('loginForm');
+const registerForm = document.getElementById('registerForm');
+
+const cartDiv = document.getElementById('cart');
+const cartItemsDiv = document.getElementById('cart-items');
+const cartTotalP = document.getElementById('cart-total');
+const overlay = document.getElementById('overlay');
+const checkoutButton = document.getElementById('placeOrderBtn');
+
+const authenticList = document.getElementById('authenticList');
+const chocolateList = document.getElementById('chocolateList');
+const cheeseCakesList = document.getElementById('cheeseCakesList');
+const iceCreamList = document.getElementById('iceCreamList');
+
+/* ------------ LOGIN SYSTEM --------------- */
+let currentUser = loadSession();
+let cart = loadCart();
+
+updateUI();
+renderMenu();
+renderCart();
+
+/* ------------ NAVIGATION --------------- */
+btnLogin.onclick = () => {
+  loginSection.classList.remove('hidden');
+  registerSection.classList.add('hidden');
+  menuSection.classList.add('hidden');
+};
+
+btnRegister.onclick = () => {
+  registerSection.classList.remove('hidden');
+  loginSection.classList.add('hidden');
+  menuSection.classList.add('hidden');
+};
+
+btnLogout.onclick = () => {
+  localStorage.removeItem('fussionSession');
+  currentUser = null;
+  cart = [];
+  saveCart(cart);
+  updateUI();
+  renderCart();
+};
+
+document.getElementById('goToRegister').onclick = () => btnRegister.click();
+document.getElementById('goToLogin').onclick = () => btnLogin.click();
+
+/* ------------ CART CONTROLS --------------- */
+btnCart.onclick = viewCartBtn.onclick = () => openCart();
+overlay.onclick = () => closeCart();
+
+function openCart(){
+  cartDiv.style.display = "flex";
+  cartDiv.classList.add("show");
+  overlay.classList.add("active");
+}
+function closeCart(){
+  cartDiv.classList.remove("show");
+  overlay.classList.remove("active");
+  setTimeout(() => { cartDiv.style.display = "none"; }, 300);
+}
+
+/* ------------ AUTH --------------- */
+loginForm.onsubmit = (e) => {
+  e.preventDefault();
+  let users = loadUsers();
+  let u = users.find(u => u.username === loginUsername.value && u.password === loginPassword.value);
+  if(!u){ alert("Invalid credentials"); return; }
+  currentUser = u;
+  saveSession(u);
+  updateUI();
+};
+
+registerForm.onsubmit = (e) => {
+  e.preventDefault();
+  let users = loadUsers();
+  if(users.find(u => u.username === registerUsername.value)){
+    alert("Username already exists!");
+    return;
+  }
+  users.push({username: registerUsername.value, password: registerPassword.value});
+  saveUsers(users);
+  alert("Registered! Login now.");
+  btnLogin.click();
+};
+
+/* ------------ UI UPDATE --------------- */
+function updateUI(){
+  if(currentUser){
+    btnLogin.classList.add('hidden');
+    btnRegister.classList.add('hidden');
+    btnLogout.classList.remove('hidden');
+    btnCart.classList.remove('hidden');
+    menuSection.classList.remove('hidden');
+    loginSection.classList.add('hidden');
+    registerSection.classList.add('hidden');
+  } else {
+    btnLogin.classList.remove('hidden');
+    btnRegister.classList.remove('hidden');
+    btnLogout.classList.add('hidden');
+    btnCart.classList.add('hidden');
+    menuSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+  }
+}
+
+/* ------------ RENDER MENU --------------- */
+function renderMenu(){
+  authenticList.innerHTML = "";
+  menuData.authentic.forEach(item => {
+    let d = document.createElement("div");
+    d.className = "menu-item";
+    d.innerHTML = `
+      <img src="${item.img}" alt="">
+      <h3>${item.name}</h3>
+      <p>₹${item.price}</p>
+      <button>Add to Cart</button>`;
+    d.querySelector("button").onclick = () => addToCart(item.name, item.price);
+    authenticList.appendChild(d);
+  });
+
+  chocolateList.innerHTML = "";
+  menuData.chocolate.forEach(item => {
+    let d = document.createElement("div");
+    d.className = "menu-item";
+    d.innerHTML = `
+      <img src="${item.img}">
+      <h3>${item.name}</h3>
+      <p>₹${item.price}</p>
+      <button>Add to Cart</button>`;
+    d.querySelector("button").onclick = () => addToCart(item.name, item.price);
+    chocolateList.appendChild(d);
+  });
+
+  cheeseCakesList.innerHTML = "";
+  menuData.cheesecake.forEach(item => {
+    let d = document.createElement("div");
+    d.className = "menu-item";
+    d.innerHTML = `
+      <img src="${item.img}">
+      <h3>${item.name}</h3>
+      <p>₹${item.price}</p>
+      <button>Add to Cart</button>`;
+    d.querySelector("button").onclick = () => addToCart(item.name, item.price);
+    cheeseCakesList.appendChild(d);
+  });
+
+  iceCreamList.innerHTML = "";
+  menuData.icecream.forEach(item => {
+    let d = document.createElement("div");
+    d.className = "menu-item";
+    d.innerHTML = `
+      <img src="${item.img}">
+      <h3>${item.name}</h3>
+      <p>Small: ₹${item.priceSmall} | Large: ₹${item.priceLarge}</p>
+      <button id="s">Add Small</button>
+      <button id="l">Add Large</button>`;
+    d.querySelector("#s").onclick = () => addToCart(item.name + " (Small)", item.priceSmall);
+    d.querySelector("#l").onclick = () => addToCart(item.name + " (Large)", item.priceLarge);
+    iceCreamList.appendChild(d);
+  });
+}
+
+/* ------------ CART RENDERING --------------- */
+function addToCart(name, price){
+  cart.push({name, price});
+  saveCart(cart);
+  renderCart();
+}
+
+function renderCart(){
+  cartItemsDiv.innerHTML = "";
+  if(cart.length === 0){
+    cartItemsDiv.innerHTML = "<p>Your cart is empty.</p>";
+    cartTotalP.textContent = "";
+    btnCart.textContent = "Cart (0)";
+    viewCartBtn.textContent = "View Cart (0)";
+    return;
+  }
+
+  let total = 0;
+
+  cart.forEach((item, index) => {
+    let d = document.createElement("div");
+    d.className = "cart-item";
+    d.innerHTML = `
+      <span>${item.name} - ₹${item.price}</span>
+      <button data-i="${index}">Remove</button>`;
+    d.querySelector("button").onclick = () => {
+      cart.splice(index, 1);
+      saveCart(cart);
+      renderCart();
+    };
+    cartItemsDiv.appendChild(d);
+    total += item.price;
+  });
+
+  cartTotalP.textContent = "Total: ₹" + total;
+  btnCart.textContent = `Cart (${cart.length})`;
+  viewCartBtn.textContent = `View Cart (${cart.length})`;
+}
+
+/* ------------ PLACE ORDER --------------- */
+checkoutButton.onclick = () => {
+  if(cart.length === 0){
+    alert("Your cart is empty!");
+    return;
+  }
+
+  alert("Order placed successfully!");
+
+  cart = [];
+  saveCart(cart);
+  renderCart();
+  closeCart();
+};
+
+</script>
+
+</body>
+</html>
